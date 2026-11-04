@@ -14,7 +14,7 @@ This is the implementation plan for Triply, an AI trip planner (Expo SDK 57, iOS
 |---|---|---|
 | M0 | Foundation | ⬜ Not started |
 | M1 | Database | ⬜ Not started |
-| M2 | Auth | ⬜ Not started |
+| M2 | Auth | 🟨 In progress |
 | M3 | Trip creation, quota, Inngest skeleton | ⬜ Not started |
 | M4 | AI generation (Gemini) | ⬜ Not started |
 | M5 | Places + images | ⬜ Not started |
@@ -164,10 +164,10 @@ drizzle/                    generated migrations
 ## M2 — Auth
 
 - [ ] Create a Clerk dev instance and enable Google and Apple
-- [ ] Add `ClerkProvider` with a secure-store token cache in the root layout
-- [ ] Build the sign-in screen: native Apple button (iOS) and Google OAuth
-- [ ] Gate the `(app)` routes with `Stack.Protected` based on `isSignedIn`
-- [ ] Add a sign-out action
+- [x] Add `ClerkProvider` with a secure-store token cache in the root layout
+- [x] Build the sign-in screen: native Apple button (iOS) and Google OAuth
+- [x] Gate the `(app)` routes with `Stack.Protected` based on `isSignedIn`
+- [x] Add a sign-out action
 - [ ] Server: `requireUser(request)` verifies the Clerk JWT and upserts the `users` row
 - [ ] Add an API client that attaches the Clerk session token (`src/lib/api.ts`)
 - [ ] Add the `GET /api/me` route
