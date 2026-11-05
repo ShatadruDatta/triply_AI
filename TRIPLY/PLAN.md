@@ -12,7 +12,7 @@ This is the implementation plan for Triply, an AI trip planner (Expo SDK 57, iOS
 
 | # | Milestone | Status |
 |---|---|---|
-| M0 | Foundation | ⬜ Not started |
+| M0 | Foundation | 🟨 In progress |
 | M1 | Database | ⬜ Not started |
 | M2 | Auth | 🟨 In progress |
 | M3 | Trip creation, quota, Inngest skeleton | ⬜ Not started |
@@ -141,14 +141,14 @@ drizzle/                    generated migrations
 ## M0 — Foundation
 
 - [ ] Install the core dependencies with `npx expo install` / `npm install`
-- [ ] Create `.env.local`, with the `EXPO_PUBLIC_` prefix only on client keys, plus a committed `.env.example`
-- [ ] Make sure `.env*` files (except `.env.example`) are git-ignored
+- [x] Create `.env.local`, with the `EXPO_PUBLIC_` prefix only on client keys, plus a committed `.env.example`
+- [x] Make sure `.env*` files (except `.env.example`) are git-ignored
 - [ ] Add a Jest config and a sample test
 - [ ] Add an `npm run typecheck` script (`tsc --noEmit`)
 - [ ] Wire up Sentry: config plugin in `app.json`, `Sentry.wrap` on the root layout
 - [ ] Add a server-side Sentry helper for API routes
 - [ ] Create `eas.json` with `development` and `production` profiles
-- [ ] Make the first dev build (`npx expo run:ios` / `npx expo run:android`)
+- [x] Make the first dev build (`npx expo run:ios` / `npx expo run:android`)
 - [ ] Create the folder skeleton (`src/server`, `src/features`, `src/lib`)
 - [ ] **Done when:** the app launches on a dev build, a test error appears in Sentry, and lint and typecheck pass
 
@@ -163,7 +163,7 @@ drizzle/                    generated migrations
 
 ## M2 — Auth
 
-- [ ] Create a Clerk dev instance and enable Google and Apple
+- [x] Create a Clerk dev instance and enable Google and Apple
 - [x] Add `ClerkProvider` with a secure-store token cache in the root layout
 - [x] Build the sign-in screen: native Apple button (iOS) and Google OAuth
 - [x] Gate the `(app)` routes with `Stack.Protected` based on `isSignedIn`
