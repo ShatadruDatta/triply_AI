@@ -13,9 +13,9 @@ This is the implementation plan for Triply, an AI trip planner (Expo SDK 57, iOS
 | # | Milestone | Status |
 |---|---|---|
 | M0 | Foundation | 🟨 In progress |
-| M1 | Database | ⬜ Not started |
+| M1 | Database | 🟨 In progress |
 | M2 | Auth | 🟨 In progress |
-| M3 | Trip creation, quota, Inngest skeleton | ⬜ Not started |
+| M3 | Trip creation, quota, Inngest skeleton | 🟨 In progress |
 | M4 | AI generation (Gemini) | ⬜ Not started |
 | M5 | Places + images | ⬜ Not started |
 | M6 | Client core flows | ⬜ Not started |
@@ -133,7 +133,7 @@ drizzle/                    generated migrations
 | `GET /api/me` | Profile plus quota used and remaining |
 | `DELETE /api/me` | Delete the Clerk user; the DB rows cascade |
 | `POST /api/push-tokens` | Upsert the device's Expo push token |
-| `POST /api/webhooks/clerk` | Verify the signature and handle `user.deleted` |
+| `POST /api/webhooks/clerk` | Verify the signature and handle `user.created`, `user.updated`, `user.deleted` (each forwarded to an Inngest function) |
 | `GET/POST/PUT /api/inngest` | Inngest `serve` handler |
 
 ---
@@ -149,16 +149,16 @@ drizzle/                    generated migrations
 - [ ] Add a server-side Sentry helper for API routes
 - [ ] Create `eas.json` with `development` and `production` profiles
 - [x] Make the first dev build (`npx expo run:ios` / `npx expo run:android`)
-- [ ] Create the folder skeleton (`src/server`, `src/features`, `src/lib`)
+- [x] Create the folder skeleton (`src/server`, `src/features`, `src/lib`)
 - [ ] **Done when:** the app launches on a dev build, a test error appears in Sentry, and lint and typecheck pass
 
 ## M1 — Database
 
 - [ ] Create a Neon project with a `dev` branch and put its connection string in the env
 - [ ] Write the Drizzle schema for every table above, with enums and `ON DELETE CASCADE` from users
-- [ ] Add `drizzle.config.ts` and the migration scripts
+- [x] Add `drizzle.config.ts` and the migration scripts
 - [ ] Generate and apply the first migration
-- [ ] Create the DB client with the Neon serverless driver (`src/server/db/client.ts`)
+- [x] Create the DB client with the Neon serverless driver (`src/server/db/client.ts`)
 - [ ] **Done when:** the migration applies cleanly to Neon dev and a test query works
 
 ## M2 — Auth
@@ -171,18 +171,18 @@ drizzle/                    generated migrations
 - [ ] Server: `requireUser(request)` verifies the Clerk JWT and upserts the `users` row
 - [ ] Add an API client that attaches the Clerk session token (`src/lib/api.ts`)
 - [ ] Add the `GET /api/me` route
-- [ ] Add the `POST /api/webhooks/clerk` route handling `user.deleted` (needs a tunnel in dev)
+- [x] Add the `POST /api/webhooks/clerk` route handling `user.created`, `user.updated` and `user.deleted`, each synced to Neon via an Inngest function (needs a tunnel in dev)
 - [ ] **Done when:** sign-in and sign-out work on iOS and Android and `/api/me` returns the user
 
 ## M3 — Trip creation, quota, Inngest skeleton
 
 - [ ] Write the shared Zod schema for trip input (`src/features/trips/schema.ts`)
 - [ ] `quota.ts`: units used this UTC month, a limit of 9, and the in-flight check
-- [ ] Create the Inngest client and the `/api/inngest` serve route
+- [x] Create the Inngest client and the `/api/inngest` serve route
 - [ ] `POST /api/trips`: validate → quota → one transaction inserting the trip and a +3 ledger row → send the event (id = tripId)
 - [ ] `GET /api/trips` and `GET /api/trips/:id` (owner only)
 - [ ] Stub `trip/generate` function that marks the trip `ready` with fake data
-- [ ] Run the Dev Server: `npx inngest-cli@latest dev -u http://localhost:8081/api/inngest`
+- [x] Run the Dev Server: `npx inngest-cli@latest dev -u http://localhost:8081/api/inngest`
 - [ ] **Done when:** a trip created with curl goes from `pending` to `ready` in the Dev Server UI
 
 ## M4 — AI generation (Gemini)
