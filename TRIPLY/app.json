@@ -38,7 +38,8 @@
       ],
       "@clerk/expo",
       "expo-secure-store",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true,

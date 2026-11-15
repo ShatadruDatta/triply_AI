@@ -1,4 +1,18 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(pod update *)",
+      "Bash(curl -s -i -m 20 http://localhost:8081/api/inngest)",
+      "Bash(curl -s -m 20 -X PUT http://localhost:8081/api/inngest)",
+      "Bash(sed -i '' -E 's/^INNGEST_DEV=.*/INNGEST_DEV=1/' .env && grep -n \"INNGEST\" .env | sed -E 's/\\(=.{0,12}\\).*/\\\\1…/')",
+      "Bash(sed -i '' \\\\ *)",
+      "Bash(curl -s -m 20 http://localhost:8081/api/inngest)",
+      "Bash(git check-ignore *)"
+    ],
+    "additionalDirectories": [
+      "/Users/shatadrudatta/Desktop/React_Native_Projects_Using_Claude/TRIPLY"
+    ]
+  },
   "enabledPlugins": {
     "expo@claude-plugins-official": true
   }
