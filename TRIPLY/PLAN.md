@@ -16,9 +16,9 @@ This is the implementation plan for Triply, an AI trip planner (Expo SDK 57, iOS
 | M1 | Database | 🟨 In progress |
 | M2 | Auth | 🟨 In progress |
 | M3 | Trip creation, quota, Inngest skeleton | 🟨 In progress |
-| M4 | AI generation (Gemini) | ⬜ Not started |
-| M5 | Places + images | ⬜ Not started |
-| M6 | Client core flows | ⬜ Not started |
+| M4 | AI generation (Gemini) | 🟨 In progress |
+| M5 | Places + images | 🟨 In progress |
+| M6 | Client core flows | 🟨 In progress |
 | M7 | Regenerate a day | ⬜ Not started |
 | M8 | Share + deep links | ⬜ Not started |
 | M9 | Push notifications | ⬜ Not started |
@@ -155,9 +155,9 @@ drizzle/                    generated migrations
 ## M1 — Database
 
 - [ ] Create a Neon project with a `dev` branch and put its connection string in the env
-- [ ] Write the Drizzle schema for every table above, with enums and `ON DELETE CASCADE` from users
+- [x] Write the Drizzle schema for every table above, with enums and `ON DELETE CASCADE` from users
 - [x] Add `drizzle.config.ts` and the migration scripts
-- [ ] Generate and apply the first migration
+- [x] Generate and apply the first migration
 - [x] Create the DB client with the Neon serverless driver (`src/server/db/client.ts`)
 - [ ] **Done when:** the migration applies cleanly to Neon dev and a test query works
 
@@ -168,41 +168,41 @@ drizzle/                    generated migrations
 - [x] Build the sign-in screen: native Apple button (iOS) and Google OAuth
 - [x] Gate the `(app)` routes with `Stack.Protected` based on `isSignedIn`
 - [x] Add a sign-out action
-- [ ] Server: `requireUser(request)` verifies the Clerk JWT and upserts the `users` row
-- [ ] Add an API client that attaches the Clerk session token (`src/lib/api.ts`)
-- [ ] Add the `GET /api/me` route
+- [x] Server: `requireUser(request)` verifies the Clerk JWT and upserts the `users` row
+- [x] Add an API client that attaches the Clerk session token (`src/lib/api.ts`)
+- [x] Add the `GET /api/me` route
 - [x] Add the `POST /api/webhooks/clerk` route handling `user.created`, `user.updated` and `user.deleted`, each synced to Neon via an Inngest function (needs a tunnel in dev)
 - [ ] **Done when:** sign-in and sign-out work on iOS and Android and `/api/me` returns the user
 
 ## M3 — Trip creation, quota, Inngest skeleton
 
-- [ ] Write the shared Zod schema for trip input (`src/features/trips/schema.ts`)
-- [ ] `quota.ts`: units used this UTC month, a limit of 9, and the in-flight check
+- [x] Write the shared Zod schema for trip input (`src/features/trips/schema.ts`)
+- [x] `quota.ts`: units used this UTC month, a limit of 9, and the in-flight check
 - [x] Create the Inngest client and the `/api/inngest` serve route
-- [ ] `POST /api/trips`: validate → quota → one transaction inserting the trip and a +3 ledger row → send the event (id = tripId)
-- [ ] `GET /api/trips` and `GET /api/trips/:id` (owner only)
+- [x] `POST /api/trips`: validate → quota → one transaction inserting the trip and a +3 ledger row → send the event (id = tripId)
+- [x] `GET /api/trips` and `GET /api/trips/:id` (owner only)
 - [ ] Stub `trip/generate` function that marks the trip `ready` with fake data
 - [x] Run the Dev Server: `npx inngest-cli@latest dev -u http://localhost:8081/api/inngest`
 - [ ] **Done when:** a trip created with curl goes from `pending` to `ready` in the Dev Server UI
 
 ## M4 — AI generation (Gemini)
 
-- [ ] `ai/schema.ts`: Zod schema covering days, activities (with a `search_query`), 2–4 hotels and the budget breakdown
-- [ ] Convert the Zod schema to a JSON schema for Gemini's `responseSchema`
-- [ ] Prompt builder: destination, dates and season, travelers, tier and amount, currency, interests, pace, notes
-- [ ] `ai/gemini.ts`: call Gemini with structured output
-- [ ] `step.run('generate')`: call Gemini, then parse with Zod, throwing on failure so the step retries
-- [ ] `step.run('persist')`: write the days, activities, hotels and budget breakdown
-- [ ] Set the trip's status to `generating` when the job starts and `ready` when it finishes
-- [ ] `onFailure`: set the trip to `failed` and add a −3 refund row (idempotency key `refund:<tripId>`)
+- [x] `ai/schema.ts`: Zod schema covering days, activities (with a `search_query`), 2–4 hotels and the budget breakdown
+- [x] Convert the Zod schema to a JSON schema for Gemini's `responseSchema`
+- [x] Prompt builder: destination, dates and season, travelers, tier and amount, currency, interests, pace, notes
+- [x] `ai/gemini.ts`: call Gemini with structured output
+- [x] `step.run('generate')`: call Gemini, then parse with Zod, throwing on failure so the step retries
+- [x] `step.run('persist')`: write the days, activities, hotels and budget breakdown
+- [x] Set the trip's status to `generating` when the job starts and `ready` when it finishes
+- [x] `onFailure`: set the trip to `failed` and add a −3 refund row (idempotency key `refund:<tripId>`)
 - [ ] **Done when:** a real Gemini itinerary lands in the DB for a test trip
 
 ## M5 — Places + images
 
 - [ ] **Decide first:** check the Google Places terms on caching photos. Default: ImageKit as a proxy for Places photo URLs, caching the place_id only
-- [ ] `places.ts`: Text Search (New) biased to the destination, with a minimal field mask
-- [ ] Enrich activities and hotels in batched steps (to respect rate limits)
-- [ ] Policy for places that can't be verified: drop them, but if a day has fewer than 2 verified activities, keep the AI entry without a pin
+- [x] `places.ts`: Text Search (New) biased to the destination, with a minimal field mask
+- [x] Enrich activities and hotels in batched steps (to respect rate limits)
+- [x] Policy for places that can't be verified: drop them, but if a day has fewer than 2 verified activities, keep the AI entry without a pin
 - [ ] Look up and write `places_cache` entries
 - [ ] `imagekit.ts`: build photo URLs with transforms
 - [ ] Choose the trip's hero image from the destination photo
@@ -211,20 +211,24 @@ drizzle/                    generated migrations
 ## M6 — Client core flows
 
 - [ ] Query client with a persisted cache (trips list and details only, 7-day max age)
-- [ ] `GET /api/places/autocomplete` proxy route
-- [ ] Destination autocomplete input with debouncing and a session token
-- [ ] Generate form: date range, travelers stepper, budget tier + optional amount, currency, interest chips, pace, notes (≤500 characters)
-- [ ] Client-side validation using the shared Zod schema, with inline errors
-- [ ] Quota-exceeded state on the form
-- [ ] Trip details: loading state that polls every 3s while `pending|generating`
-- [ ] Trip details: failed state with a retry
-- [ ] Trip details: hero image, day sections, activity cards
-- [ ] Trip details: hotels section
+- [x] `GET /api/places/autocomplete` proxy route
+- [x] Destination autocomplete input with debouncing and a session token
+- [x] Generate form: date range, travelers stepper, budget tier + optional amount, currency, interest chips, pace, notes (≤500 characters)
+- [x] Client-side validation using the shared Zod schema, with inline errors
+- [x] Quota-exceeded state on the form
+- [x] Trip details: loading state that polls every 3s while `pending|generating`
+- [x] Trip details: failed state with a retry
+- [x] Trip details: hero image, day sections, activity cards
+- [x] Trip details: hotels section
 - [ ] Trip details: `expo-maps` pins plus "Open in Maps"
-- [ ] Trip details: budget breakdown, labelled as estimates
-- [ ] Trips tab: status cards (generating, ready, failed) and an empty state with a "Plan a trip" CTA
+- [x] Trip details: budget breakdown, labelled as estimates
+- [x] Trips tab: status cards (generating, ready, failed) and an empty state with a "Plan a trip" CTA
 - [ ] Profile tab: user info and quota used/remaining
-- [ ] NativeTabs layout with SF Symbols, liquid glass where available, automatic light and dark mode
+- [x] NativeTabs shell (Home, Assistant, Trips, Profile) with SF Symbols and Material icons
+- [x] Home tab static UI (mock data, placeholder images cropped from the design)
+- [x] Plan a Trip screen UI (form, Travel Dates sheet, Travelers sheet) in the Trips tab; Home "Plan a Trip" opens it (UI only, no functionality yet)
+- [ ] Home tab: real data (trips, destinations), ImageKit images, real search/quick-action navigation
+- [ ] Light and dark mode pass for the Home tab and tab bar
 - [ ] **Done when:** generate → wait → view works end to end on iOS and Android
 
 ## M7 — Regenerate a day

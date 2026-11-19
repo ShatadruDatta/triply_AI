@@ -39,7 +39,13 @@
       "@clerk/expo",
       "expo-secure-store",
       "expo-apple-authentication",
-      "@sentry/react-native"
+      "@sentry/react-native",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Triply uses your photos so you can choose a cover image for a trip."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
