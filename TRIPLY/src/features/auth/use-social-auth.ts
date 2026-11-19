@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Platform } from "react-native";
 
+import { DEV_LOGIN_SHORTCUT, enableDevBypass } from "@/lib/dev-bypass";
 import { strings } from "@/lib/strings";
 
 type Provider = "apple" | "google";
@@ -13,6 +14,7 @@ type FlowResult = {
   setActive?: (params: { session: string }) => Promise<void>;
   signUp?: { status: string | null; missingFields?: string[] } | null;
   signIn?: { status: string | null } | null;
+  authSessionResult?: { type: string } | null;
 };
 
 const CANCELLED_CODES = ["ERR_REQUEST_CANCELED", "SIGN_IN_CANCELLED", "-5"];
@@ -48,7 +50,8 @@ export function useSocialAuth() {
     if (pending) return;
     setPending(provider);
     try {
-      const { createdSessionId, setActive, signUp, signIn } = await flow();
+      const { createdSessionId, setActive, signUp, signIn, authSessionResult } =
+        await flow();
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
         router.replace("/");
@@ -68,6 +71,12 @@ export function useSocialAuth() {
             ? `signUp: ${signUpStatus ?? "-"} (${(signUp?.missingFields ?? []).join(", ")})\nsignIn: ${signInStatus ?? "-"}`
             : strings.auth.errorMessage,
         );
+      } else if (__DEV__ && authSessionResult) {
+        // The browser sheet closed without a usable result; say why in dev builds.
+        Alert.alert(
+          strings.auth.errorTitle,
+          `Browser session ended: ${authSessionResult.type}\ncreatedSessionId: ${createdSessionId ?? "none"}\nsetActive: ${setActive ? "yes" : "no"}`,
+        );
       }
     } catch (error) {
       if (!isCancellation(error)) {
@@ -84,14 +93,18 @@ export function useSocialAuth() {
 
   // Native Sign in with Apple sheet on iOS; browser SSO on Android.
   const signInWithApple = () =>
-    run("apple", () =>
-      Platform.OS === "ios"
-        ? startAppleAuthenticationFlow()
-        : startSSOFlow({ strategy: "oauth_apple" }),
-    );
+    DEV_LOGIN_SHORTCUT
+      ? enableDevBypass()
+      : run("apple", () =>
+          Platform.OS === "ios"
+            ? startAppleAuthenticationFlow()
+            : startSSOFlow({ strategy: "oauth_apple" }),
+        );
 
   const signInWithGoogle = () =>
-    run("google", () => startSSOFlow({ strategy: "oauth_google" }));
+    DEV_LOGIN_SHORTCUT
+      ? enableDevBypass()
+      : run("google", () => startSSOFlow({ strategy: "oauth_google" }));
 
   return { pending, signInWithApple, signInWithGoogle };
 }

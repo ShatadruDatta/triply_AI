@@ -1,0 +1,1 @@
+ALTER TABLE "trips" ADD COLUMN "hero_image_file_id" text;

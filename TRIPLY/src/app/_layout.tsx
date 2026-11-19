@@ -2,7 +2,12 @@ import "../../global.css";
 
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
-import { Stack } from "expo-router";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { router, Stack } from "expo-router";
+import { useEffect } from "react";
+
+import { useDevBypass } from "@/lib/dev-bypass";
+import { queryClient } from "@/lib/query-client";
 
 function getPublishableKey() {
   const key = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -13,7 +18,14 @@ function getPublishableKey() {
 const publishableKey = getPublishableKey();
 
 function RootNavigator() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn: clerkSignedIn } = useAuth();
+  const devBypass = useDevBypass();
+  const isSignedIn = clerkSignedIn || devBypass;
+
+  // Flipping the guard alone leaves the sign-in screen showing; navigate to Home explicitly.
+  useEffect(() => {
+    if (devBypass) router.replace("/");
+  }, [devBypass]);
 
   if (!isLoaded) return null;
 
@@ -32,7 +44,9 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <RootNavigator />
+      <QueryClientProvider client={queryClient}>
+        <RootNavigator />
+      </QueryClientProvider>
     </ClerkProvider>
   );
 }
