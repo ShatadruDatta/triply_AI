@@ -73,14 +73,24 @@
       "Bash(curl -s -m 280 -o /tmp/claude-501/s/bundle.js -w \"HTTP %{http_code} size %{size_download}\\\\n\" \"http://localhost:8081/node_modules/expo-router/entry.bundle?platform=ios&dev=true&hot=false&lazy=true&minify=false\")",
       "Bash(curl -s -m 280 -o /tmp/claude-501/s/bundle2.js -w \"HTTP %{http_code} size %{size_download}\\\\n\" \"http://localhost:8081/node_modules/expo-router/entry.bundle?platform=ios&dev=true&hot=false&lazy=false&minify=false\")",
       "Bash(curl -s -m 280 -o /tmp/claude-501/s/b3.js -w \"HTTP %{http_code} size %{size_download}\\\\n\" \"http://localhost:8081/src/features/assistant/assistant-screen.bundle?platform=ios&dev=true&minify=false&lazy=false\")",
-      "Bash(node -p \"require\\('@sentry/node/package.json'\\).version\")"
+      "Bash(node -p \"require\\('@sentry/node/package.json'\\).version\")",
+      "Bash(node -p \"require\\('inngest/package.json'\\).version\")",
+      "Bash(sips -g pixelWidth -g pixelHeight \"design/Triply Profile and Travel Preferences.png\")",
+      "Bash(curl -s -m 5 -H \"x-dev-bypass: 1\" localhost:8081/api/me)",
+      "Bash(cd /Users/shatadrudatta/Desktop/React_Native_Projects_Using_Claude/TRIPLY; *)",
+      "Bash(sips -g pixelWidth -g pixelHeight \"design/Help & Support.png\")",
+      "Bash(osascript -e 'tell application \"System Events\" to get name of every process whose name is \"Simulator\"')",
+      "Bash(sips -g pixelWidth -g pixelHeight \"design/Privacy Policy.png\")",
+      "Bash(sips -c 200 170 --cropOffset 100 422 \"design/Privacy Policy.png\" --out assets/images/profile/privacy-hero.png)",
+      "Bash(sips -g pixelWidth -g pixelHeight \"design/Triply Edit Profile Screen.png\")"
     ],
     "additionalDirectories": [
       "/Users/shatadrudatta/Desktop/React_Native_Projects_Using_Claude/TRIPLY",
       "/Users/shatadrudatta/Desktop/React_Native_Projects_Using_Claude/TRIPLY/src/app",
       "/tmp/claude-501",
       "/Users/shatadrudatta/Desktop/React_Native_Projects_Using_Claude/TRIPLY/src/server/inngest/functions",
-      "/Users/shatadrudatta/Desktop/React_Native_Projects_Using_Claude/TRIPLY/src/app/api/trips"
+      "/Users/shatadrudatta/Desktop/React_Native_Projects_Using_Claude/TRIPLY/src/app/api/trips",
+      "/Users/shatadrudatta/Desktop/React_Native_Projects_Using_Claude/TRIPLY/src/features"
     ]
   },
   "enabledPlugins": {

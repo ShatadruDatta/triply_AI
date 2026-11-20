@@ -223,7 +223,7 @@ drizzle/                    generated migrations
 - [ ] Trip details: `expo-maps` pins plus "Open in Maps"
 - [x] Trip details: budget breakdown, labelled as estimates
 - [x] Trips tab: status cards (generating, ready, failed) and an empty state with a "Plan a trip" CTA
-- [ ] Profile tab: user info and quota used/remaining
+- [x] Profile tab: user info and quota used/remaining
 - [x] NativeTabs shell (Home, Assistant, Trips, Profile) with SF Symbols and Material icons
 - [x] Home tab static UI (mock data, placeholder images cropped from the design)
 - [x] Plan a Trip screen UI (form, Travel Dates sheet, Travelers sheet) in the Trips tab; Home "Plan a Trip" opens it (UI only, no functionality yet)

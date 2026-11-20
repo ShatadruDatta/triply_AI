@@ -103,7 +103,14 @@ export function useRecorderVoiceInput(onText: (text: string) => void): VoiceInpu
   useEffect(
     () => () => {
       clearTimer();
-      if (recorder.isRecording) void recorder.stop().catch(() => undefined);
+      // By the time this runs on unmount or Fast Refresh, expo-audio may already have released
+      // the native recorder, and reading it then throws "Unable to find the native shared
+      // object". That means nothing is left to stop, so it is safe to ignore here.
+      try {
+        if (recorder.isRecording) void recorder.stop().catch(() => undefined);
+      } catch {
+        // Native recorder already released.
+      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
