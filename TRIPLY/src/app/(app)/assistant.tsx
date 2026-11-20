@@ -1,6 +1,5 @@
-import { PlaceholderScreen } from "@/features/home/placeholder-screen";
-import { strings } from "@/lib/strings";
+import { AssistantScreen } from "@/features/assistant/assistant-screen";
 
 export default function AssistantTab() {
-  return <PlaceholderScreen title={strings.placeholders.assistant} />;
+  return <AssistantScreen />;
 }

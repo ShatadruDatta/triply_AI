@@ -15,6 +15,7 @@ import {
 } from '@/server/db/schema';
 import { searchPhoto, trackDownload, type StockPhoto } from '@/server/images';
 import { distanceKm, placesEnabled, searchPlace, type PlaceMatch } from '@/server/places';
+import { log, span } from '@/server/sentry';
 
 // A place further than this from the destination is treated as a wrong match.
 const MAX_DISTANCE_KM = 80;
@@ -234,7 +235,7 @@ export async function persistTrip(
 
   // neon-http has no interactive transactions; batch() runs these atomically in one request.
   // Deleting first makes a retried persist step idempotent.
-  await db.batch([
+  await span('Save generated trip', 'db', { trip_id: trip.id }, () => db.batch([
     db.delete(tripDays).where(eq(tripDays.tripId, trip.id)),
     db.delete(hotels).where(eq(hotels.tripId, trip.id)),
     db.insert(tripDays).values(dayRows),
@@ -260,13 +261,14 @@ export async function persistTrip(
         updatedAt: new Date(),
       })
       .where(eq(trips.id, trip.id)),
-  ]);
+  ]));
 }
 
 // Marks the trip failed and refunds its quota. Safe to call more than once.
 export async function failTrip(tripId: string, errorCode: string) {
   const [trip] = await db.select().from(trips).where(eq(trips.id, tripId)).limit(1);
   if (!trip) return;
+  log.warn('Trip failed, refunding quota', { trip_id: tripId, error_code: errorCode });
   await db.batch([
     db
       .update(trips)

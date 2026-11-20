@@ -1,4 +1,5 @@
 import type { ImageCredit } from '@/server/db/schema';
+import { log, span } from '@/server/sentry';
 
 // Unsplash API guidelines: hotlink the photo URLs, show the photographer credit with a link
 // (carrying our utm params) and ping the download endpoint when a photo is used.
@@ -30,11 +31,13 @@ export async function searchPhoto(query: string): Promise<StockPhoto | null> {
       orientation: 'landscape',
       content_filter: 'high',
     })}`;
-    const response = await fetch(url, {
-      headers: { Authorization: `Client-ID ${accessKey}`, 'Accept-Version': 'v1' },
-    });
+    const response = await span('Unsplash search', 'http.client', { service: 'unsplash' }, () =>
+      fetch(url, {
+        headers: { Authorization: `Client-ID ${accessKey}`, 'Accept-Version': 'v1' },
+      }),
+    );
     if (!response.ok) {
-      console.warn(`Unsplash search failed (${response.status}) for "${query}"`);
+      log.warn('Unsplash search failed', { status: response.status });
       return null;
     }
     const { results } = (await response.json()) as { results: UnsplashPhoto[] };
@@ -53,7 +56,7 @@ export async function searchPhoto(query: string): Promise<StockPhoto | null> {
     cache.set(query, result);
     return result;
   } catch (error) {
-    console.warn('Unsplash search error', error);
+    log.warn('Unsplash search error', { error: error instanceof Error ? error.message : String(error) });
     return null;
   }
 }
@@ -65,6 +68,8 @@ export async function trackDownload(photo: StockPhoto) {
   try {
     await fetch(photo.downloadLocation, { headers: { Authorization: `Client-ID ${accessKey}` } });
   } catch (error) {
-    console.warn('Unsplash download tracking failed', error);
+    log.warn('Unsplash download tracking failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }

@@ -14,6 +14,7 @@ import {
   hasGenerationInFlight,
   unitsUsedThisMonth,
 } from '@/server/quota';
+import { log, reportError, span, traceCarrier } from '@/server/sentry';
 import { failStaleGenerations, failTrip } from '@/server/trips/generate';
 
 export const GET = route(async (request: Request) => {
@@ -60,6 +61,7 @@ export const POST = route(async (request: Request) => {
   }
   const used = await unitsUsedThisMonth(user.id);
   if (used + GENERATE_COST_UNITS > QUOTA_LIMIT_UNITS) {
+    log.warn('Quota exceeded', { user_id: user.id, units_used: used, units_limit: QUOTA_LIMIT_UNITS });
     throw new HttpError(402, 'quota_exceeded', 'Monthly trip quota used up.', {
       used,
       limit: QUOTA_LIMIT_UNITS,
@@ -68,7 +70,7 @@ export const POST = route(async (request: Request) => {
 
   const tripId = randomUUID();
   // The trip and its quota charge are written together or not at all.
-  await db.batch([
+  await span('Insert trip and quota charge', 'db', { trip_id: tripId }, () => db.batch([
     db.insert(trips).values({
       id: tripId,
       userId: user.id,
@@ -92,12 +94,19 @@ export const POST = route(async (request: Request) => {
       units: GENERATE_COST_UNITS,
       idempotencyKey: `generate:${tripId}`,
     }),
-  ]);
+  ]));
 
   try {
-    await inngest.send({ id: `trip-generate-${tripId}`, name: 'trip/generate.requested', data: { tripId } });
+    // The trace goes along in the event so the background job joins this request's trace.
+    await span('Queue trip generation', 'queue.publish', { trip_id: tripId }, () =>
+      inngest.send({
+        id: `trip-generate-${tripId}`,
+        name: 'trip/generate.requested',
+        data: { tripId, _sentry: traceCarrier() },
+      }),
+    );
   } catch (error) {
-    console.error('Could not queue trip generation', error);
+    await reportError(error, 'Could not queue trip generation', { trip_id: tripId });
     await failTrip(tripId, 'dispatch_failed');
     throw new HttpError(
       502,
@@ -106,5 +115,6 @@ export const POST = route(async (request: Request) => {
     );
   }
 
+  log.info('Trip generation requested', { trip_id: tripId, user_id: user.id, travelers: input.travelers });
   return json({ id: tripId }, 201);
 });
