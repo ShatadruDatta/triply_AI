@@ -20,9 +20,19 @@ export async function unitsUsedThisMonth(userId: string) {
   return Math.max(0, row?.total ?? 0);
 }
 
-export async function getQuota(userId: string) {
+export async function getQuota(userId: string, now = new Date()) {
   const used = await unitsUsedThisMonth(userId);
-  return { used, limit: QUOTA_LIMIT_UNITS, remaining: Math.max(0, QUOTA_LIMIT_UNITS - used) };
+  const remaining = Math.max(0, QUOTA_LIMIT_UNITS - used);
+  return {
+    used,
+    limit: QUOTA_LIMIT_UNITS,
+    remaining,
+    // The same numbers in trips, which is how the app shows them.
+    tripsTotal: Math.floor(QUOTA_LIMIT_UNITS / GENERATE_COST_UNITS),
+    tripsLeft: Math.floor(remaining / GENERATE_COST_UNITS),
+    // The quota is per UTC month, so it resets at the start of the next one.
+    resetsAt: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)).toISOString(),
+  };
 }
 
 // A user may have at most one generation running at a time. Runs older than this are treated

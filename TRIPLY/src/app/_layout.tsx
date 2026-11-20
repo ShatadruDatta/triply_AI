@@ -40,6 +40,14 @@ function getPublishableKey() {
 
 const publishableKey = getPublishableKey();
 
+// Bottom sheets opened from Edit Profile. They draw their own dimmed backdrop and sheet, so
+// every position can match the design (iOS 26's native form sheet floats with side margins).
+const preferenceSheet = {
+  presentation: "transparentModal" as const,
+  animation: "fade" as const,
+  contentStyle: { backgroundColor: "transparent" },
+};
+
 function RootNavigator() {
   const { isLoaded, isSignedIn: clerkSignedIn, userId } = useAuth();
   const devBypass = useDevBypass();
@@ -61,6 +69,10 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={isSignedIn}>
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="edit-profile" />
+        <Stack.Screen name="travel-style" options={preferenceSheet} />
+        <Stack.Screen name="food-preference" options={preferenceSheet} />
+        <Stack.Screen name="travel-with" options={preferenceSheet} />
       </Stack.Protected>
       <Stack.Protected guard={!isSignedIn}>
         <Stack.Screen name="(auth)" />
