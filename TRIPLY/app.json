@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.anonymous.TRIPLY"
+      "bundleIdentifier": "com.anonymous.TRIPLY",
+      "appleTeamId": "ZC57NK3G6A"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +20,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.TRIPLY"
+      "package": "com.anonymous.TRIPLY",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -44,6 +49,14 @@
         "expo-image-picker",
         {
           "photosPermission": "Triply uses your photos so you can choose a cover image for a trip."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Triply uses your microphone so you can ask the travel assistant questions by voice.",
+          "enableBackgroundRecording": false,
+          "enableBackgroundPlayback": false
         }
       ]
     ],

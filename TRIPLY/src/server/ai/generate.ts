@@ -1,14 +1,19 @@
 import { NonRetriableError } from 'inngest';
 
 import type { TripInput } from '@/features/trips/schema';
+import { log, span } from '@/server/sentry';
 
 import { generateWithGemini } from './gemini';
 import { generateWithOpenAI } from './openai';
 import { buildTripPrompt } from './prompt';
-import { tripPlanSchema, type TripPlan } from './schema';
+import { tripPlanJsonSchema, tripPlanSchema, type TripPlan } from './schema';
 
 // OpenAI first; if it is missing or fails, fall back to Gemini when that key is set.
-async function requestPlanText(prompt: ReturnType<typeof buildTripPrompt>): Promise<string> {
+// `jsonSchema` describes the JSON to return.
+async function requestStructuredText(
+  prompt: ReturnType<typeof buildTripPrompt>,
+  jsonSchema: Record<string, unknown>,
+): Promise<string> {
   const openaiKey = process.env.OPENAI_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!openaiKey && !geminiKey) {
@@ -17,13 +22,20 @@ async function requestPlanText(prompt: ReturnType<typeof buildTripPrompt>): Prom
 
   if (openaiKey) {
     try {
-      return await generateWithOpenAI(openaiKey, prompt);
+      return await span('OpenAI structured generation', 'ai.run', { provider: 'openai' }, () =>
+        generateWithOpenAI(openaiKey, prompt, jsonSchema),
+      );
     } catch (error) {
-      console.error('OpenAI failed:', error instanceof Error ? error.message : error);
+      log.error('OpenAI failed', {
+        error: error instanceof Error ? error.message : String(error),
+        fallback_to_gemini: !!geminiKey,
+      });
       if (!geminiKey) throw error;
     }
   }
-  return generateWithGemini(geminiKey!, prompt);
+  return span('Gemini structured generation', 'ai.run', { provider: 'gemini' }, () =>
+    generateWithGemini(geminiKey!, prompt, jsonSchema),
+  );
 }
 
 function parsePlan(text: string, input: TripInput): TripPlan {
@@ -40,11 +52,13 @@ function parsePlan(text: string, input: TripInput): TripPlan {
 export async function generateTripPlan(input: TripInput, lat: number | null): Promise<TripPlan> {
   const prompt = buildTripPrompt(input, lat);
   try {
-    return parsePlan(await requestPlanText(prompt), input);
+    return parsePlan(await requestStructuredText(prompt, tripPlanJsonSchema()), input);
   } catch (error) {
     if (error instanceof NonRetriableError) throw error;
     // Models occasionally return a plan that breaks a rule; one fresh try usually fixes it.
-    console.warn('AI plan rejected, retrying once:', error instanceof Error ? error.message.slice(0, 200) : error);
-    return parsePlan(await requestPlanText(prompt), input);
+    log.warn('AI plan rejected, retrying once', {
+      error: error instanceof Error ? error.message.slice(0, 200) : String(error),
+    });
+    return parsePlan(await requestStructuredText(prompt, tripPlanJsonSchema()), input);
   }
 }

@@ -1,4 +1,5 @@
 import { useAuth } from '@clerk/expo';
+import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 
 import { useDevBypass } from '@/lib/dev-bypass';
@@ -47,11 +48,16 @@ export function useApi() {
         body: body === undefined ? undefined : isForm ? (body as FormData) : JSON.stringify(body),
       });
     } catch {
+      Sentry.logger.warn('API network error', { path, method });
       throw new ApiError(0, 'network', 'Network request failed');
     }
 
     const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
     if (!response.ok) {
+      // 4xx are expected (validation, quota); only 5xx point at a server problem.
+      if (response.status >= 500) {
+        Sentry.logger.error('API request failed', { path, method, status: response.status });
+      }
       throw new ApiError(
         response.status,
         typeof data.error === 'string' ? data.error : 'request_failed',

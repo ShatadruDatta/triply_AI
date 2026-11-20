@@ -27,7 +27,11 @@ function stripBounds(value: unknown): unknown {
   return value;
 }
 
-export async function generateWithGemini(apiKey: string, prompt: Prompt): Promise<string> {
+export async function generateWithGemini(
+  apiKey: string,
+  prompt: Prompt,
+  jsonSchema: Record<string, unknown> = tripPlanJsonSchema(),
+): Promise<string> {
   const client = new GoogleGenAI({ apiKey, httpOptions: { timeout: 45_000 } });
   const interaction = await client.interactions.create({
     model: process.env.GEMINI_MODEL ?? DEFAULT_MODEL,
@@ -36,7 +40,7 @@ export async function generateWithGemini(apiKey: string, prompt: Prompt): Promis
     response_format: {
       type: 'text',
       mime_type: 'application/json',
-      schema: stripBounds(tripPlanJsonSchema()) as Record<string, unknown>,
+      schema: stripBounds(jsonSchema) as Record<string, unknown>,
     },
   });
   if (!interaction.output_text) throw new Error('Gemini returned an empty response.');

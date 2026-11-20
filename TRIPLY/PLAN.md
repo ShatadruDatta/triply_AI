@@ -145,8 +145,8 @@ drizzle/                    generated migrations
 - [x] Make sure `.env*` files (except `.env.example`) are git-ignored
 - [ ] Add a Jest config and a sample test
 - [ ] Add an `npm run typecheck` script (`tsc --noEmit`)
-- [ ] Wire up Sentry: config plugin in `app.json`, `Sentry.wrap` on the root layout
-- [ ] Add a server-side Sentry helper for API routes
+- [x] Wire up Sentry: config plugin in `app.json`, `Sentry.wrap` on the root layout
+- [x] Add a server-side Sentry helper for API routes
 - [ ] Create `eas.json` with `development` and `production` profiles
 - [x] Make the first dev build (`npx expo run:ios` / `npx expo run:android`)
 - [x] Create the folder skeleton (`src/server`, `src/features`, `src/lib`)

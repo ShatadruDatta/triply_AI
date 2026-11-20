@@ -1,5 +1,7 @@
 import ImageKit, { toFile } from '@imagekit/nodejs';
 
+import { log, span } from '@/server/sentry';
+
 // Custom trip covers are uploaded here. Delivery URLs are optimised on the client with
 // ImageKit transformation params (see src/lib/imagekit.ts), so we only store the original.
 export const imageKitEnabled = () =>
@@ -18,13 +20,13 @@ export async function uploadTripCover(params: {
   mimeType: string;
 }): Promise<{ url: string; fileId: string }> {
   const extension = params.mimeType.split('/')[1]?.replace('jpeg', 'jpg') ?? 'jpg';
-  const response = await client().files.upload({
+  const response = await span('ImageKit upload', 'http.client', { service: 'imagekit' }, async () => client().files.upload({
     file: await toFile(params.bytes, `cover.${extension}`, { type: params.mimeType }),
     fileName: `cover-${params.tripId}.${extension}`,
     folder: `/triply/covers/${params.userId}`,
     useUniqueFileName: true,
     tags: ['trip-cover'],
-  });
+  }));
   if (!response.url || !response.fileId) throw new Error('ImageKit returned an incomplete upload response.');
   return { url: response.url, fileId: response.fileId };
 }
@@ -35,6 +37,9 @@ export async function deleteImageKitFile(fileId: string | null | undefined) {
   try {
     await client().files.delete(fileId);
   } catch (error) {
-    console.warn(`Could not delete ImageKit file ${fileId}:`, error instanceof Error ? error.message : error);
+    log.warn('Could not delete ImageKit file', {
+      file_id: fileId,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }

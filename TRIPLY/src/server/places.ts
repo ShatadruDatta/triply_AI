@@ -1,3 +1,5 @@
+import { log, span } from '@/server/sentry';
+
 // Google Places API (New). Only coordinates, address and rating are used; photos are not
 // stored because of the Places caching terms, images come from Unsplash instead.
 export type PlaceMatch = {
@@ -27,7 +29,8 @@ export async function searchPlace(
   if (!apiKey) return null;
 
   try {
-    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+    const response = await span('Places search', 'http.client', { service: 'google_places' }, () =>
+      fetch('https://places.googleapis.com/v1/places:searchText', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -48,9 +51,9 @@ export async function searchPlace(
             }
           : {}),
       }),
-    });
+    }));
     if (!response.ok) {
-      console.warn(`Places search failed (${response.status}) for "${textQuery}"`);
+      log.warn('Places search failed', { status: response.status });
       return null;
     }
     const place = ((await response.json()) as SearchTextResponse).places?.[0];
@@ -63,7 +66,7 @@ export async function searchPlace(
       rating: place.rating ?? null,
     };
   } catch (error) {
-    console.warn('Places search error', error);
+    log.warn('Places search error', { error: error instanceof Error ? error.message : String(error) });
     return null;
   }
 }

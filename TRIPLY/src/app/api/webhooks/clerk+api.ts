@@ -1,6 +1,7 @@
 import { verifyWebhook } from '@clerk/backend/webhooks';
 
 import { inngest } from '@/server/inngest/client';
+import { log } from '@/server/sentry';
 
 export async function POST(request: Request) {
   let evt;
@@ -8,7 +9,9 @@ export async function POST(request: Request) {
     // Reads CLERK_WEBHOOK_SIGNING_SECRET and verifies the signature.
     evt = await verifyWebhook(request);
   } catch (error) {
-    console.error('Clerk webhook verification failed', error);
+    log.warn('Clerk webhook verification failed', {
+      reason: error instanceof Error ? error.message : 'unknown',
+    });
     return new Response('Invalid signature', { status: 400 });
   }
 
@@ -40,5 +43,6 @@ export async function POST(request: Request) {
     });
   }
 
+  log.info('Clerk webhook received', { type: evt.type });
   return new Response('ok', { status: 200 });
 }
